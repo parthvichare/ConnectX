@@ -16,7 +16,7 @@ services:
   
   frontend:
     build:
-      context: ./frontend/my-app
+      context: ./frontend/react-app
       dockerfile: Dockerfile
     container_name: my-react-app
     networks:
