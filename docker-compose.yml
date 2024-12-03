@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend  # Ensure this points to your Node.js application directory
+      dockerfile: Dockerfile
+    container_name: my-node-app
+    depends_on:
+      - redis  # Ensure Redis is started before the Node.js app
+    networks:
+      - app-network
+    ports:
+      - 8000:8000  # Map host port 8000 to container port 8000
+    restart: always  # Restart container if it stops
+  
+  frontend:
+    build:
+      context: ./frontend/my-app
+      dockerfile: Dockerfile
+    container_name: my-react-app
+    networks:
+      - app-network
+    ports:
+      - "3000:3000"  # Map host port 3000 to container port 3000
+    restart: always
+
+  redis:
+    container_name: my-redis
+    image: redis:latest
+    networks:
+      - app-network
+    ports:
+      - 6379:6379  # Map host port 6379 to container port 6379
+
+networks:
+  app-network:
+    name: connectx_app_network
+    driver: bridge  # Use the bridge network driver
