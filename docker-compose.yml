@@ -13,6 +13,16 @@ services:
     ports:
       - 8000:8000  # Map host port 8000 to container port 8000
     restart: always  # Restart container if it stops
+
+  mongo:
+    image: mongo:6.0.7
+    platform: linux/amd64
+    container_name: mongo-container
+    ports:
+      - "27017:27017"  # Exposing MongoDB to localhost:27017
+    networks:
+      - app-network
+    restart: always  # Ensures MongoDB restarts if it crashes
   
   frontend:
     build:
