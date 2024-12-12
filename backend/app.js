@@ -1,10 +1,10 @@
 require("dotenv").config(); 
 
-
 // const client = require("./client");
 const express = require("express")
 const cookieParser=require("cookie-parser")
 const path = require("path")
+const initSocket = require("./socket/index");
 
 //Building httpServer + Real-Time Communication Server with WebScoket
 const app = express()
@@ -38,23 +38,17 @@ app.use(cors({
     credentials:true
 }))
 
-const io = socketIo(server,{
-    cors:{
-        origin:["http://localhost:3000"],
-        methods:["GET","POST","PATCH","DELETE"],
-        credentials:true
-    }
-})
 
 // Server and MongoDB Connection
 connectDB()
 
 
 // Socket Connection
+initSocket(server)
 
 
 // MiddleWares for Handling All Request, Authentication, URL-parser
-app.use(express.json())   
+app.use(express.json())
 app.use(express.urlencoded({extended:false}));
 app.use(cookieParser())
 app.use(checkForAuthenticationCookie("token"));
@@ -94,72 +88,51 @@ app.use("/user", userRoute)
 
 //Communicating with WebScoket Connection for Real-Time Communication
 
-
-
-
-
-// //Communicating with WebScoket Connection for Real-Time Communication
-io.on("connection", (socket) => {
-  // Emit a welcome message
-  socket.emit("message", { message: "Hello from the Server of Node.js" });
-
-  // Listen for the New User Connected event from the client
-  socket.on("Connect", ({ token, userId }) => {
-    console.log("Received token from client:", token);
-    console.log("User is Connected", userId);
-  });
-
-  socket.on("CurrentMessages", async ({ currentMessages }) => {
-    const { message, messageBy, conversationId } = currentMessages;
-
-    // Check if a conversation ID is provided
-    let conversation;
-    if (!conversationId) {
-      // If no conversationId, find or create a conversation
-      conversation = await Conversation.findOne({
-        participants: { $all: [messageBy] },
-      });
-
-      if (!conversation) {
-        // Create a new conversation if it doesn't exist
-        conversation = new Conversation({
-          participants: [messageBy], // Initialize with the current user
-        });
-        await conversation.save();
-      }
-    } else {
-      // If conversationId is provided, find the existing conversation
-      conversation = await Conversation.findById(conversationId);
-    }
-
-    // Create and save the new message
-    const currentMessage = new Message({
-      message: message,
-      messageBy: messageBy,
-      conversationId: conversation._id, // Use the conversation ID
-    });
-    await currentMessage.save();
-
-    // Emit the message to all participants in the conversation
-
-    const newMessage = await Message.findById(currentMessage._id);
-    console.log(newMessage)
-    io.emit("NewMessage",{newMessage})
-  });
-
-//   const newMessage =await Message.find({});
-//   socket.emit("NewMessage", {newMessage })
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+app.get("/api/:convoId", async (req, res) => {
+  // console.log(convoId)
+  const { convoId } = req.params; // Get convoId from request params
+  try {
+    const messages = await Message.find({ conversationId: convoId }); // Adjust according to your schema
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
+
+
+app.get("/api/allusers", async (req, res) => {
+  try {
+    const allUsers = await User.find({});
+    return res.status(200).json({ users: allUsers }); // Standard HTTP status for success
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/message/:convoId", async(req,res)=>{
+  const{conversationId} = req.body
+  const messages = await Conversation.findById({_id:conversationId})
+  return res.json({message:messages})
+})
+
+
+app.post("/api/getConversationId",async(req,res)=>{
+  const{userId, messageTo}= await req.params
+  console.log(userId, messageTo)
+})
+
+
+app.get("/message", async(req,res)=>{
+  res.json({message:"Hello from Nodejs"})
+})
+
 
 
 server.listen(PORT,()=>{
     console.log(`Server Running on PORT at http://localhost:${PORT}/`)
 })
-
 
 
 

@@ -5,12 +5,16 @@ const messageSchema = new Schema(
     message: {
       type: String,
       required: true,
-      trim: true,
     },
     messageBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    messageTo:{
+      type:Schema.Types.ObjectId,
+      ref:"User",
+      required:true
     },
     conversationId: {
       type: Schema.Types.ObjectId,

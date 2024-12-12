@@ -25,8 +25,8 @@ const SignIn = () => {
         const { LoginSuccessful, usertoken,userId } = response.data;
         setMessage(LoginSuccessful);
         localStorage.setItem("TOKEN", usertoken.token);
-        localStorage.setItem("userId", userId)
-        navigate("/ConnnectX-Chat")
+        localStorage.setItem("AdminId", userId)
+        navigate('/users')
       } else {
         setMessage("Unexpected response. Please try again.");
       }

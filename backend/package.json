@@ -1,9 +1,9 @@
 {
   "name": "index",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,6 +14,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "engine.io": "^6.6.2",
     "express": "^4.21.1",
     "express-validation": "^4.1.1",
     "ioredis": "^5.4.1",

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 const SignOut = () => {
    const handleSignOut=()=>{
      localStorage.removeItem("TOKEN")
+     localStorage.removeItem("userId")
      window.location.href = "/user/signIn"; // Redirects to the login page
    }
   return (
