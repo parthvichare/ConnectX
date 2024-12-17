@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend  # Path to your Node.js application directory
+      dockerfile: Dockerfile  # Dockerfile for the backend service
+    container_name: my-node-app  # Name of the container
+    environment:
+      - MONGODB_URI=mongodb://mongo-container:27017/chat-app  # MongoDB connection URI
+      - REDIS_HOST=redis
+    command: ["nodemon", "server.js"]
+    networks:
+      - app-network  # Connect to the custom bridge network
+    ports:
+      - "8000:8000"  # Map host port 8000 to container port 8000
+    depends_on:
+      - mongo  # Ensure MongoDB starts before the backend
+      - redis  # Ensure Redis starts before the backend
+    restart: always  # Restart the container if it stops
+  
+  mongo:
+    image: mongo:6.0.7  # MongoDB image version
+    platform: linux/amd64  # Specify platform if needed
+    container_name: mongo-container  # Name of the MongoDB container
+    ports:
+      - "27017:27017"  # Expose MongoDB to localhost:27017
+    volumes:
+      - mongo-data:/data/db  # Persist MongoDB data using a named volume
+    networks:
+      - app-network  # Connect to the custom bridge network
+    restart: always  # Restart the container if it crashes
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  
+  # frontend:
+  #   build:
+  #     context: ./frontend/react-app  # Path to your React application directory
+  #     dockerfile: Dockerfile  # Dockerfile for the frontend service
+  #   container_name: my-react-app  # Name of the container
+  #   networks:
+  #     - app-network  # Connect to the custom bridge network
+  #   ports:
+  #     - "3000:3000"  # Map host port 3000 to container port 3000
+  #   restart: always  # Restart the container if it stops
+  
+  redis:
+    container_name: my-redis  # Name of the Redis container
+    image: redis:latest  # Latest Redis image
+    networks:
+      - app-network  # Connect to the custom bridge network
+    ports:
+      - "6379:6379"  # Map host port 6379 to container port 6379
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mongo-data:  # Named volume for MongoDB data
+  redis-data:  # Named volume for Redis data
+
+networks:
+  app-network:  # Define a custom bridge network
+    name: connectx_app_network  # Name of the custom network
+    driver: bridge  # Use the bridge network driver
